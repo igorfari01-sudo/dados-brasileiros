@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brasil em Dados — A Realidade que Ninguém Mostra</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --yellow: #eab308;
+    --purple: #a855f7;
+    --orange: #f97316;
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --text: #f1f1f3;
+    --text2: #9999aa;
+    --text3: #666677;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34,197,94,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(59,130,246,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 20% 70%, rgba(239,68,68,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 24px;
+    padding: 6px 16px;
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 100px;
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 8vw, 80px);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: clamp(15px, 2.5vw, 18px);
+    color: var(--text2);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  .hero-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text3);
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    animation: bounce 2s infinite;
+  }
+
+  .hero-scroll svg { opacity: .5; }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-item {
+    background: var(--bg);
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.4;
+  }
+
+  /* SECTION */
+  .section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .section-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  .section-intro {
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 680px;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  /* PRES TIMELINE */
+  .pres-timeline {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 32px;
+    margin-bottom: 12px;
+  }
+
+  .pres-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 4px;
+    transition: opacity .2s;
+  }
+
+  .pres-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+
+  .pres-leg-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .pres-leg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+
+  .tab-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .tab-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .tab-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 500; }
+
+  /* CHART CARD */
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .chart-subtitle {
+    font-size: 13px;
+    color: var(--text3);
+    margin-bottom: 24px;
+  }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 300px;
+  }
+
+  /* CRISIS TAGS */
+  .crisis-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+
+  .ctag {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    letter-spacing: .03em;
+  }
+
+  /* INFO BOX */
+  .info-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .src-box {
+    font-size: 11px;
+    color: var(--text3);
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+    line-height: 1.5;
+    margin-bottom: 32px;
+  }
+
+  /* COMPARISON CARDS */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .comp-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .comp-label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .comp-values {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .comp-val {
+    flex: 1;
+    background: var(--bg2);
+    border-radius: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+  }
+
+  .comp-val-year { font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+  .comp-val-num { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .comp-val-num.good { color: var(--green); }
+  .comp-val-num.bad { color: var(--red); }
+  .comp-arrow { font-size: 18px; color: var(--text3); }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 12px;
+    line-height: 1.8;
+    border-top: 1px solid var(--border);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .chart-wrap { height: 240px; }
+    .comp-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label">Dados abertos ao povo</div>
+  <h1>Brasil em Dados<br><span>A Realidade</span></h1>
+  <p>26 anos de economia, saúde mental, poder de compra e bem-estar do povo brasileiro. Dados reais, fontes abertas, sem filtro político.</p>
+  <div class="hero-scroll">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    role para ver
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-item">
+    <div class="stat-value" style="color:var(--red)">+79%</div>
+    <div class="stat-label">suicídios a mais<br>em 13 anos</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" style="color:var(--red)">65%</div>
+    <div class="stat-label">jovens 18–24 anos<br>com ansiedade</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" style="color:var(--red)">R$5,70</div>
+    <div class="stat-label">dólar hoje<br>vs R$1,95 em 2007</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" style="color:var(--yellow)">78%</div>
+    <div class="stat-label">famílias brasileiras<br>endividadas (2024)</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" style="color:var(--green)">+13%</div>
+    <div class="stat-label">IDH cresceu<br>de 0,693 → 0,786</div>
+  </div>
+</div>
+
+<!-- SECTION 1: PRESIDENTES -->
+<section class="section">
+  <div class="section-eyebrow" style="color:var(--blue)">Contexto histórico</div>
+  <h2>Quem governou o Brasil<br>nos últimos 26 anos</h2>
+  <p class="section-intro">Cada presidente herdou uma situação e deixou outra. Os dados não mentem — mas o contexto importa. Crises globais, commodities e pandemias afetam qualquer governo.</p>
+
+  <div class="pres-timeline" id="presTimeline"></div>
+  <div class="pres-legend" id="presLegend"></div>
+
+  <div class="crisis-tags">
+    <span class="ctag" style="background:#172554;color:#93c5fd">1999 — Crise cambial</span>
+    <span class="ctag" style="background:#1c1917;color:#fbbf24">2002 — Crise confiança/eleição</span>
+    <span class="ctag" style="background:#1e1b4b;color:#c4b5fd">2005 — Mensalão (~R$174 mi)</span>
+    <span class="ctag" style="background:#1e3a1e;color:#86efac">2008 — Crise financeira global</span>
+    <span class="ctag" style="background:#2d1515;color:#fca5a5">2014–21 — Lava Jato (~R$10 bi)</span>
+    <span class="ctag" style="background:#1c0a0a;color:#f87171">2015–16 — Recessão + impeachment</span>
+    <span class="ctag" style="background:#1a0a2e;color:#d8b4fe">2020–21 — Pandemia COVID-19 ☁</span>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 2: PAINEL HISTÓRICO -->
+<section class="section">
+  <div class="section-eyebrow" style="color:var(--green)">Painel histórico 1998–2024</div>
+  <h2>8 indicadores que mostram<br>o que chegou ao povo</h2>
+  <p class="section-intro">Inflação, desemprego, Bolsa Família, emprego formal, impostos, gastos em saúde e educação, desigualdade e IDH. Passe o cursor (ou o dedo) para ver os detalhes de cada ano.</p>
+
+  <div class="tabs" id="histTabs"></div>
+  <div class="chart-card">
+    <div class="chart-title" id="histTitle"></div>
+    <div class="chart-subtitle" id="histSubtitle"></div>
+    <div class="chart-wrap"><canvas id="histChart"></canvas></div>
+  </div>
+  <div class="info-box" id="histInfo"></div>
+  <div class="src-box" id="histSrc"></div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 3: COMPARAÇÃO ERA DE OURO vs HOJE -->
+<section class="section">
+  <div class="section-eyebrow" style="color:var(--red)">Era de ouro vs hoje</div>
+  <h2>2006–2010 comparado<br>com 2024–2025</h2>
+  <p class="section-intro">Os melhores 4 anos consecutivos da série histórica versus hoje. O que melhorou, o que piorou, e o que as pessoas sentem no dia a dia.</p>
+
+  <div class="tabs" id="compTabs"></div>
+  <div class="chart-card">
+    <div class="chart-title" id="compTitle"></div>
+    <div class="chart-subtitle" id="compSubtitle"></div>
+    <div class="chart-wrap"><canvas id="compChart"></canvas></div>
+  </div>
+  <div class="info-box" id="compInfo"></div>
+  <div class="src-box" id="compSrc"></div>
+  <div class="comp-grid" id="compCards"></div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text2);margin-bottom:12px">Brasil em Dados</p>
+  <p>Fontes: IBGE · Banco Mundial · PNUD/ONU · Fiocruz · OMS/OPS · Receita Federal · Tesouro Nacional · MDS · DIEESE · Banco Central do Brasil</p>
+  <p style="margin-top:8px">Dados compilados em maio de 2026. Compartilhe livremente — o conhecimento pertence ao povo.</p>
+</footer>
+
+<script>
+// ── DADOS ──────────────────────────────────────────────────────────────────
+const YEARS = [1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+
+const PRESIDENTS = [
+  {name:'FHC',party:'PSDB',align:'Centro-direita',color:'#2563eb',start:1998,end:2002},
+  {name:'Lula I+II',party:'PT',align:'Esquerda',color:'#dc2626',start:2003,end:2010},
+  {name:'Dilma',party:'PT',align:'Esquerda',color:'#b45309',start:2011,end:2016},
+  {name:'Temer',party:'MDB',align:'Centro',color:'#7c3aed',start:2016,end:2018},
+  {name:'Bolsonaro',party:'PL',align:'Direita',color:'#059669',start:2019,end:2022},
+  {name:'Lula III',party:'PT',align:'Esquerda',color:'#dc2626',start:2023,end:2024},
+];
+
+const CRISES = {1999:'Crise cambial',2002:'Crise confiança/eleição',2005:'Mensalão',2008:'Crise global',2015:'Recessão',2016:'Impeachment Dilma',2020:'Covid-19',2021:'Covid-19'};
+const COVID = [2020,2021];
+
+function presOf(yr){ for(const p of PRESIDENTS) if(yr>=p.start&&yr<=p.end) return p; return PRESIDENTS[0]; }
+
+// Build president bar
+const tl = document.getElementById('presTimeline');
+const leg = document.getElementById('presLegend');
+const total = YEARS.length;
+for(const p of PRESIDENTS){
+  const s=Math.max(p.start,1998),e=Math.min(p.end,2024);
+  if(e<s) continue;
+  const w=(e-s+1)/total*100;
+  const el=document.createElement('div');
+  el.className='pres-seg';
+  el.style.cssText=`width:${w}%;background:${p.color}`;
+  el.textContent=w>7?p.name+(w>13?' ('+p.party+')':''):'';
+  el.title=`${p.name} · ${p.party} · ${p.align} · ${s}–${e}`;
+  tl.appendChild(el);
+  const li=document.createElement('div');
+  li.className='pres-leg-item';
+  li.innerHTML=`<span class="pres-leg-dot" style="background:${p.color}"></span><strong>${p.name}</strong> ${p.party} · ${p.align} · ${s}–${e}`;
+  leg.appendChild(li);
+}
+
+// ── PAINEL HISTÓRICO ───────────────────────────────────────────────────────
+const HIST = [
+  { key:'ipca', label:'💸 Inflação (IPCA)', color:'#ef4444',
+    data:[3.2,8.9,6.0,7.7,12.5,9.3,7.6,5.7,3.1,4.5,5.9,4.3,5.9,6.5,5.8,5.9,6.4,10.7,6.3,2.9,3.7,4.3,4.5,8.3,9.3,4.6,4.8],
+    yMin:0,yMax:15,yLabel:'%',fmt:v=>v.toFixed(1)+'%',
+    title:'Inflação anual — IPCA (%)',subtitle:'O que o povo sente no bolso todo mês',
+    info:'FHC estabilizou o Real pós-hiperinflação. Lula manteve controle entre 3–6%. Dilma 2015 perdeu o controle: 10,7% destruiu o poder de compra. Em 2022 bateu 9,3% com Covid + combustíveis + câmbio desvalorizado. O menor registro foi 2,9% em 2017 (Temer).',
+    src:'Fonte: IBGE — série histórica IPCA 1998–2024.'},
+  { key:'desemp', label:'📉 Desemprego', color:'#f97316',
+    data:[12.3,11.7,10.5,11.2,11.7,12.3,11.5,9.9,8.4,9.4,7.9,8.1,6.7,6.0,5.5,5.4,6.8,8.5,11.5,12.7,12.3,11.9,13.7,13.2,9.2,8.0,7.6],
+    yMin:0,yMax:16,yLabel:'%',fmt:v=>v.toFixed(1)+'%',
+    title:'Taxa de desemprego (%)',subtitle:'Boom das commodities vs crise de 2015',
+    info:'O boom das commodities (2003–2014) derrubou o desemprego de 12% para 5,4%. A crise 2015–16 destruiu 6 milhões de vagas em 2 anos. A pandemia chegou a 13,7% em 2020. Hoje em ~7,6%, mas parte do mercado está na informalidade disfarçada de "empreendedorismo".',
+    src:'Fonte: Banco Mundial/OIT. Quebra metodológica em 2012 (PME→PNADC).'},
+  { key:'bf', label:'🏠 Bolsa Família', color:'#a855f7',
+    data:[0,0,0,0,0,3.6,6.5,8.7,11.1,11.0,10.6,12.4,12.8,13.4,13.9,14.1,14.0,13.9,13.5,13.6,14.1,14.3,19.2,14.7,21.6,21.3,20.9],
+    yMin:0,yMax:24,yLabel:'milhões fam.',fmt:v=>v>0?v.toFixed(1)+' mi':'não existia',
+    title:'Beneficiários Bolsa Família (milhões de famílias)',subtitle:'De 3,6 mi (2003) a 21,3 mi (2023)',
+    info:'Criado por Lula em 2003. Cresceu de 3,6 mi para ~14 mi de famílias até 2014. Chamado de "Auxílio Brasil" no governo Bolsonaro (2019–2022). O auxílio emergencial da pandemia (2020) elevou para 19 mi temporariamente. Em 2023 atingiu recorde histórico: 21,3 mi de famílias — cobrindo ~1/4 da população.',
+    src:'Fonte: MDS/SENARC — demonstrativo físico-financeiro. 1998–2002 = zero (programa não existia).'},
+  { key:'clt', label:'📋 Emprego CLT', color:'#0891b2',
+    data:[23.0,22.5,23.5,24.0,25.0,26.5,28.0,30.2,32.5,35.0,37.5,38.0,40.8,43.0,44.5,46.0,45.0,41.5,38.5,37.5,37.8,38.5,36.0,38.5,42.0,44.5,46.0],
+    yMin:15,yMax:52,yLabel:'milhões',fmt:v=>v.toFixed(1)+' mi',
+    title:'Trabalhadores com carteira assinada (milhões)',subtitle:'Recorde histórico em 2024, mas renda real estagnada',
+    info:'Grande salto nos governos Lula: de 25 mi para 46 mi de carteiras assinadas. A crise 2015–16 destruiu 6 mi de vagas formais. Pandemia fechou 2,5 mi. Recorde histórico em 2024: 46 mi, mas 81% recebe até 5 salários mínimos e poder de compra real ainda não voltou ao pico de 2014.',
+    src:'Fonte: MTE/CAGED/RAIS. Interpolação da série histórica. Quebra metodológica em 2020 (Novo CAGED).'},
+  { key:'trib', label:'💰 Carga tributária', color:'#64748b',
+    data:[29.0,30.0,30.4,31.4,32.4,31.9,32.8,33.8,34.2,35.0,35.8,33.6,33.5,35.3,35.9,33.5,32.7,32.1,32.2,32.4,33.3,33.2,31.6,33.9,33.0,30.3,34.2],
+    yMin:25,yMax:38,yLabel:'% PIB',fmt:v=>v.toFixed(1)+'%',
+    title:'Carga tributária total (% do PIB)',subtitle:'Brasil cobra mais imposto que a maioria do mundo em desenvolvimento',
+    info:'A carga tributária foi de ~29% em 1998 para 34,2% em 2024 — o maior da série histórica. União + estados + municípios juntos. O Brasil tem carga similar a países europeus mas entrega serviços públicos de país emergente. É o pior custo-benefício tributário do planeta segundo o Banco Mundial.',
+    src:'Fonte: Receita Federal / STN / FGV Observatório de Política Fiscal.'},
+  { key:'social', label:'🏥 Saúde+Educação', color:'#22c55e',
+    data:[5.5,5.6,5.7,5.8,5.8,6.0,6.1,6.3,6.5,6.8,7.0,7.2,7.5,7.8,8.0,8.2,8.5,8.6,8.5,8.4,8.5,8.6,9.0,9.2,9.4,9.6,10.1],
+    yMin:4,yMax:12,yLabel:'% PIB',fmt:v=>v.toFixed(1)+'%',
+    title:'Gasto em saúde + educação (% do PIB)',subtitle:'Cresceu em todos os governos — mas qualidade não acompanhou',
+    info:'Em 2024: saúde 5,0% + educação 5,1% = 10,1% do PIB — o maior da história. Cresceu consistentemente em todos os governos. O problema é a eficiência: o Brasil gasta como país rico mas entrega serviços de país pobre. Custo por aluno e custo por procedimento são altíssimos com resultados abaixo da média da OCDE.',
+    src:'Fonte: Tesouro Nacional (COFOG) / IPEA. Inclui União + estados + municípios.'},
+  { key:'gini', label:'⚖️ Desigualdade', color:'#be185d',
+    data:[59.7,59.2,58.7,58.0,57.4,57.0,56.5,55.8,55.0,54.4,53.7,53.2,52.9,52.7,52.5,52.6,51.9,51.5,53.3,53.3,53.9,53.4,48.9,52.0,52.0,51.6,50.3],
+    yMin:44,yMax:64,yLabel:'Gini (0–100)',fmt:v=>v.toFixed(1),
+    title:'Índice Gini — desigualdade (0=igual / 100=máxima)',subtitle:'Brasil reduziu, mas ainda é top 10 mais desigual do mundo',
+    info:'O Brasil reduziu o Gini de 60 para 51 entre 1998 e 2015 — uma das maiores quedas da desigualdade do mundo no período. A crise 2015–16 reverteu parte do progresso. O mínimo histórico foi em 2020 (48,9), puxado pelo auxílio emergencial. Apesar do avanço, o Brasil ainda está entre os 10 países mais desiguais do mundo.',
+    src:'Fonte: Banco Mundial / Plataforma de Pobreza e Desigualdade (PNAD/PNADC).'},
+  { key:'idh', label:'📈 IDH', color:'#3b82f6',
+    data:[0.693,0.696,0.699,0.706,0.713,0.718,0.724,0.729,0.735,0.741,0.747,0.751,0.757,0.761,0.764,0.766,0.762,0.756,0.759,0.760,0.762,0.765,0.762,0.767,0.760,0.780,0.786],
+    yMin:0.67,yMax:0.80,yLabel:'IDH (0–1)',fmt:v=>v.toFixed(3),
+    title:'IDH — Índice de Desenvolvimento Humano',subtitle:'Crescimento quase contínuo de 0,693 (1998) a 0,786 (2024)',
+    info:'Síntese de saúde, educação e renda (PNUD/ONU). O Brasil subiu mais de 90 posições no ranking global nas últimas 3 décadas. Quedas pontuais em crises (2015–16 e pandemia 2020). Mas ainda é "IDH alto" bem abaixo da média da OCDE (0,90) — mostrando que há muito espaço para crescer.',
+    src:'Fonte: PNUD — Relatório de Desenvolvimento Humano 1998–2024.'},
+];
+
+let histCur = 'ipca', histChart = null;
+
+function renderHistTabs(){
+  const bar=document.getElementById('histTabs');
+  bar.innerHTML='';
+  HIST.forEach(d=>{
+    const btn=document.createElement('button');
+    btn.className='tab-btn'+(d.key===histCur?' active':'');
+    btn.textContent=d.label;
+    btn.onclick=()=>{ histCur=d.key; renderHistTabs(); renderHistChart(); };
+    bar.appendChild(btn);
+  });
+}
+
+function renderHistChart(){
+  const d=HIST.find(x=>x.key===histCur);
+  document.getElementById('histTitle').textContent=d.title;
+  document.getElementById('histSubtitle').textContent=d.subtitle;
+  document.getElementById('histInfo').textContent=d.info;
+  document.getElementById('histSrc').textContent=d.src;
+  if(histChart){ histChart.destroy(); histChart=null; }
+  const ctx=document.getElementById('histChart');
+  const ptColors=YEARS.map(y=>presOf(y).color);
+  histChart=new Chart(ctx,{
+    data:{
+      labels:YEARS,
+      datasets:[
+        { type:'bar', label:'Pandemia', data:YEARS.map(y=>COVID.includes(y)?d.yMax:0),
+          backgroundColor:'rgba(168,85,247,0.08)', borderWidth:0, barPercentage:0.95, order:2 },
+        { type:'line', label:d.label, data:d.data, borderColor:d.color,
+          backgroundColor:d.color+'15', borderWidth:2.5, pointRadius:3, pointHoverRadius:7,
+          pointBackgroundColor:ptColors, pointBorderColor:ptColors, tension:0.35, fill:true, order:1 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{ filter:i=>i.datasetIndex===1,
+          callbacks:{
+            title:ctx2=>{
+              const yr=parseInt(ctx2[0].label), p=presOf(yr);
+              let s=yr+' — '+p.name+' ('+p.party+', '+p.align+')';
+              if(CRISES[yr]) s+='\n⚠ '+CRISES[yr]; return s;
+            },
+            label:ctx2=>d.label+': '+d.fmt(ctx2.parsed.y)
+          }
+        }
+      },
+      scales:{
+        x:{ ticks:{color:'#666677',font:{size:10},autoSkip:false,maxRotation:50,callback:(v,i)=>YEARS[i]%2===0?YEARS[i]:''}, grid:{color:'rgba(255,255,255,0.05)'} },
+        y:{ min:d.yMin, max:d.yMax, ticks:{color:'#666677',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, title:{display:true,text:d.yLabel,color:'#666677',font:{size:10}} }
+      }
+    }
+  });
+}
+
+renderHistTabs(); renderHistChart();
+
+// ── COMPARAÇÃO ERA DE OURO vs HOJE ─────────────────────────────────────────
+const COMP = [
+  { key:'poder', label:'💰 Poder de compra',
+    title:'Poder de compra do salário mínimo',subtitle:'Quantas cestas básicas o salário comprava?',
+    type:'bar', labels:['2006','2007','2008','2010','2015','2020','2022','2024–25'],
+    datasets:[{ label:'Cestas básicas / salário mínimo',
+      data:[1.85,1.95,2.05,2.15,2.10,2.21,1.70,1.72],
+      backgroundColor:['#22c55e','#22c55e','#22c55e','#22c55e','#eab308','#3b82f6','#ef4444','#ef4444'] }],
+    yMin:0, yMax:3, yLabel:'cestas básicas',
+    info:'No auge (2006–2010) o salário mínimo comprava ~2,1 cestas básicas. A pandemia destruiu isso. Em 2022 caiu para 1,7 — o pior em décadas. Em 2024–25 ainda abaixo do nível pré-pandemia, mesmo com salário mínimo nominalmente maior. A inflação de alimentos subiu muito mais que os salários.',
+    src:'Fontes: DIEESE (cesta básica SP) / Unicamp CECON / LCA 4intelligence 2025.',
+    comps:[
+      {l:'Salário mínimo',a:'R$ 350 (≈US$162)',b:'R$ 1.518 (≈US$276)',ay:'2006',by:'2025',aGood:true,bGood:false},
+      {l:'Cesta básica SP',a:'~R$ 190',b:'~R$ 880',ay:'2006',by:'2025',aGood:true,bGood:false},
+      {l:'Figurinha Panini (pacote)',a:'R$ 0,50',b:'R$ 4,00',ay:'2006',by:'2024',aGood:true,bGood:false},
+      {l:'Passagem de ônibus SP',a:'R$ 2,00',b:'R$ 5,00',ay:'2007',by:'2025',aGood:true,bGood:false},
+      {l:'Frango inteiro (kg)',a:'~R$ 3,50',b:'~R$ 15,00',ay:'2007',by:'2025',aGood:true,bGood:false},
+      {l:'Plano internet residencial',a:'~R$ 80',b:'~R$ 130',ay:'2008',by:'2024',aGood:true,bGood:false},
+    ]},
+  { key:'dolar', label:'💵 Câmbio',
+    title:'Cotação do dólar (R$/US$)',subtitle:'O real foi forte — e jamais voltou',
+    type:'line', labels:['2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'],
+    datasets:[{ label:'R$ por US$1',
+      data:[3.08,2.93,2.44,2.17,1.95,1.83,2.00,1.76,1.67,1.95,2.16,2.35,3.33,3.49,3.19,3.65,3.94,5.40,5.39,5.16,4.99,5.40,5.70],
+      borderColor:'#3b82f6', backgroundColor:'#3b82f615', fill:true, tension:0.35, pointRadius:3, pointHoverRadius:7, pointBackgroundColor:'#3b82f6' }],
+    yMin:1, yMax:7, yLabel:'R$/US$',
+    info:'Em 2007 o real atingiu R$1,67 por dólar — o brasileiro viajava barato, importado era acessível. A partir de 2014 o câmbio começou a se deteriorar. Em 2020 chegou a R$5,40. Em 2025 oscila em ~R$5,70. O brasileiro de hoje precisa de mais de 3x mais reais para comprar a mesma coisa em dólar.',
+    src:'Fonte: Banco Central do Brasil / PTAX médio anual.',
+    comps:[
+      {l:'Dólar médio',a:'R$ 2,17',b:'R$ 5,70',ay:'2006',by:'2025',aGood:true,bGood:false},
+      {l:'iPhone (lançamento)',a:'~R$ 800',b:'~R$ 8.500',ay:'2008',by:'2024',aGood:true,bGood:false},
+      {l:'Passagem ida/volta Miami',a:'~R$ 1.800',b:'~R$ 6.500',ay:'2008',by:'2024',aGood:true,bGood:false},
+      {l:'Tênis Nike importado',a:'~R$ 150',b:'~R$ 700',ay:'2007',by:'2024',aGood:true,bGood:false},
+    ]},
+  { key:'saude', label:'🧠 Saúde mental',
+    title:'Diagnósticos de ansiedade e depressão',subtitle:'Brasil é o 1º lugar mundial em ansiedade',
+    type:'bar', labels:['Ansiedade\n(pop. geral)','Ansiedade\n(18–24 anos)','Depressão\n(pop. geral)','Depressão\n(mulheres)'],
+    datasets:[
+      { label:'2006–2010 (estimativa)', data:[8,12,6,9], backgroundColor:'#22c55e88' },
+      { label:'2023–2024', data:[27,65,13,18], backgroundColor:'#ef4444cc' }
+    ],
+    yMin:0, yMax:75, yLabel:'% da população',
+    info:'Os números são chocantes. Em 2023, 26,8% dos brasileiros têm diagnóstico de ansiedade — o maior do mundo segundo a OMS. Entre jovens de 18–24 anos, chega a 65% (Ipsos/2024). A depressão afeta 12,7% da população. O Brasil lidera o ranking mundial de ansiedade. A pandemia aumentou em 25% globalmente, mas o Brasil já era líder antes.',
+    src:'Fontes: OMS 2017 e 2022 / Covitel 2023 / Ipsos Brasil 2024 / Instituto de Psiquiatria USP.',
+    comps:[
+      {l:'Ansiedade (pop. geral)',a:'~8–9%',b:'26,8%',ay:'2006–10',by:'2023',aGood:true,bGood:false},
+      {l:'Ansiedade em jovens 18–24',a:'~12%',b:'65%',ay:'estimativa',by:'2024',aGood:true,bGood:false},
+      {l:'Ranking mundial ansiedade',a:'entre os maiores',b:'🥇 1º lugar',ay:'2010',by:'2024',aGood:false,bGood:false},
+      {l:'Depressão (pop. geral)',a:'~6%',b:'12,7%',ay:'2010',by:'2023',aGood:true,bGood:false},
+    ]},
+  { key:'suicidio', label:'⚠️ Suicídio jovens',
+    title:'Suicídios anuais no Brasil',subtitle:'+81% entre adolescentes de 2010 a 2019',
+    type:'line', labels:['2000','2002','2004','2006','2008','2010','2012','2014','2016','2018','2019','2020','2021','2022','2023'],
+    datasets:[{ label:'Suicídios totais por ano',
+      data:[7600,8000,8300,8700,9200,9500,10200,11900,12400,13000,13500,13800,14200,14800,17002],
+      borderColor:'#ef4444', backgroundColor:'#ef444415', fill:true, tension:0.35, pointRadius:3, pointHoverRadius:7, pointBackgroundColor:'#ef4444' }],
+    yMin:0, yMax:20000, yLabel:'total/ano',
+    info:'Em 2010 havia ~9.500 suicídios/ano no Brasil. Em 2023 foram 17.002 — alta de 79% em 13 anos. Entre adolescentes, a taxa subiu 81% de 2010 a 2019. As autolesões em jovens de 10–24 anos cresceram 29% ao ano entre 2011 e 2022 (Fiocruz/Harvard, publicado no The Lancet). O Brasil é o 8º país em número absoluto de suicídios.',
+    src:'Fontes: SVS/Ministério da Saúde Boletim 33 / Fiocruz/The Lancet 2024 / OPAS / CFM.',
+    comps:[
+      {l:'Suicídios por ano',a:'~9.500',b:'17.002',ay:'2010',by:'2023',aGood:true,bGood:false},
+      {l:'Taxa adolescentes (por 100 mil)',a:'3,5',b:'6,4',ay:'2010',by:'2019',aGood:true,bGood:false},
+      {l:'Autolesões jovens 10–24',a:'base',b:'+29%/ano (2011–22)',ay:'2011',by:'2022',aGood:true,bGood:false},
+      {l:'Ranking mundial suicídios',a:'fora do top 10',b:'8º lugar',ay:'2010',by:'2024',aGood:true,bGood:false},
+    ]},
+  { key:'emprego', label:'📊 Emprego & dívida',
+    title:'Qualidade do emprego e endividamento',subtitle:'Mais empregos, mais dívidas',
+    type:'bar', labels:['Desemprego (%)','Informais (%)','Endividados (%)','Inadimplentes (%)'],
+    datasets:[
+      { label:'2007–2010', data:[8.1,42,56,20], backgroundColor:'#22c55e88' },
+      { label:'2024–2025', data:[7.6,39,78,30], backgroundColor:'#eab308cc' }
+    ],
+    yMin:0, yMax:100, yLabel:'%',
+    info:'O desemprego hoje é semelhante ao dos anos dourados, mas a qualidade piorou. Em 2024, 78% das famílias brasileiras estão endividadas (CNC) — o maior nível da série histórica. 30% estão inadimplentes. A renda média real ainda não voltou ao pico de 2014. A informalidade disfarçada de "empreendedorismo" esconde trabalho precário.',
+    src:'Fontes: IBGE PNADC / CNC Pesquisa de Endividamento 2024 / DIEESE / Banco Central.',
+    comps:[
+      {l:'Famílias endividadas',a:'~56%',b:'78%',ay:'2008',by:'2024',aGood:true,bGood:false},
+      {l:'Famílias inadimplentes',a:'~20%',b:'30%',ay:'2008',by:'2024',aGood:true,bGood:false},
+      {l:'Renda média real',a:'base 100',b:'~95 (abaixo do pico)',ay:'2014 (pico)',by:'2024',aGood:true,bGood:false},
+      {l:'Informalidade',a:'~42%',b:'~39% ✅ (ligeira melhora)',ay:'2008',by:'2024',aGood:false,bGood:true},
+    ]},
+  { key:'resumo', label:'📋 Resumo',
+    title:'Resumo: o que melhorou e o que piorou',subtitle:'Radar de bem-estar 2006–10 vs 2024–25 (maior = melhor)',
+    type:'radar', labels:['Poder de\ncompra','Emprego\nformal','IDH','Câmbio\n(R$/US$)','Saúde\nmental','Suicídio\njovens','Desigualdade\n(Gini)'],
+    datasets:[
+      { label:'2006–2010', data:[75,62,52,90,85,85,45], borderColor:'#22c55e', backgroundColor:'#22c55e22', pointBackgroundColor:'#22c55e' },
+      { label:'2024–2025', data:[50,75,72,40,30,35,55], borderColor:'#ef4444', backgroundColor:'#ef444422', pointBackgroundColor:'#ef4444' }
+    ],
+    yMin:0, yMax:100, yLabel:'score',
+    info:'Verde = 2006–2010. Vermelho = 2024–25. O Brasil melhorou em IDH, emprego formal e Gini (desigualdade). Mas despencou em saúde mental, câmbio/poder de compra internacional, e suicídio de jovens. É esse paradoxo que você sente: os números "frios" melhoram, mas o bem-estar subjetivo e cotidiano despencou.',
+    src:'Síntese baseada em IBGE, PNUD, OMS, DIEESE, Fiocruz, Banco Central e Banco Mundial.',
+    comps:[
+      {l:'IDH',a:'0,741',b:'0,786 ✅',ay:'2007',by:'2024',aGood:false,bGood:true},
+      {l:'Desemprego',a:'9,4%',b:'7,6% ✅',ay:'2007',by:'2024',aGood:false,bGood:true},
+      {l:'Câmbio (R$/US$)',a:'R$ 1,95',b:'R$ 5,70 ❌',ay:'2007',by:'2025',aGood:true,bGood:false},
+      {l:'Cestas / salário mínimo',a:'~2,0',b:'~1,7 ❌',ay:'2007',by:'2025',aGood:true,bGood:false},
+      {l:'Ansiedade jovens',a:'~12%',b:'65% ❌',ay:'2008',by:'2024',aGood:true,bGood:false},
+      {l:'Suicídios/ano',a:'~9.500',b:'17.002 ❌',ay:'2010',by:'2023',aGood:true,bGood:false},
+      {l:'Famílias endividadas',a:'56%',b:'78% ❌',ay:'2008',by:'2024',aGood:true,bGood:false},
+    ]},
+];
+
+let compCur='poder', compChart=null;
+
+function renderCompTabs(){
+  const bar=document.getElementById('compTabs');
+  bar.innerHTML='';
+  COMP.forEach(d=>{
+    const btn=document.createElement('button');
+    btn.className='tab-btn'+(d.key===compCur?' active':'');
+    btn.textContent=d.label;
+    btn.onclick=()=>{ compCur=d.key; renderCompTabs(); renderCompChart(); };
+    bar.appendChild(btn);
+  });
+}
+
+function renderCompChart(){
+  const d=COMP.find(x=>x.key===compCur);
+  document.getElementById('compTitle').textContent=d.title;
+  document.getElementById('compSubtitle').textContent=d.subtitle;
+  document.getElementById('compInfo').textContent=d.info;
+  document.getElementById('compSrc').textContent=d.src;
+
+  if(compChart){ compChart.destroy(); compChart=null; }
+  const ctx=document.getElementById('compChart');
+  const isRadar=d.type==='radar';
+  compChart=new Chart(ctx,{
+    type:d.type,
+    data:{ labels:d.labels, datasets:d.datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:d.datasets.length>1, labels:{ color:'#9999aa', font:{size:11}, boxWidth:12 } } },
+      scales: isRadar ? {
+        r:{ ticks:{color:'#666677',font:{size:9},stepSize:25}, grid:{color:'rgba(255,255,255,0.08)'}, pointLabels:{color:'#9999aa',font:{size:10}}, min:0, max:100 }
+      } : {
+        x:{ ticks:{color:'#666677',font:{size:10},maxRotation:30}, grid:{color:'rgba(255,255,255,0.05)'} },
+        y:{ min:d.yMin, max:d.yMax, ticks:{color:'#666677',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, title:{display:true,text:d.yLabel,color:'#666677',font:{size:10}} }
+      }
+    }
+  });
+
+  // Comparison cards
+  const grid=document.getElementById('compCards');
+  if(d.comps){
+    grid.innerHTML=d.comps.map(c=>`
+      <div class="comp-card">
+        <div class="comp-label">${c.l}</div>
+        <div class="comp-values">
+          <div class="comp-val">
+            <div class="comp-val-year">${c.ay}</div>
+            <div class="comp-val-num ${c.aGood?'good':'bad'}">${c.a}</div>
+          </div>
+          <div class="comp-arrow">→</div>
+          <div class="comp-val">
+            <div class="comp-val-year">${c.by}</div>
+            <div class="comp-val-num ${c.bGood?'good':'bad'}">${c.b}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  } else { grid.innerHTML=''; }
+}
+
+renderCompTabs(); renderCompChart();
+</script>
+</body>
+</html>
